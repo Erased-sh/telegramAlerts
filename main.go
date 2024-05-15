@@ -8,11 +8,17 @@ import (
 func main() {
 	var err error
 	bot := realisations.GetEchoBot("")
+
 	client := 23
-	if err = bot.SendDelayedMsg(1, "s", func() error {
+	action := func() error {
 		fmt.Println(client)
 		return bot.Bot.SendMsg(0, "Hello, world!")
-	}); err != nil {
+
+	}
+	bot.Bot.SendMsg(0, "Hello, world!")
+	bot.Bot.SendPhoto(0, []byte("photo"))
+
+	if err = bot.SendDelayedMsg(1, "s", action); err != nil {
 		fmt.Println(err)
 	}
 }
