@@ -1,13 +1,17 @@
 package realisations
 
-import "telegramAlerts/pkg/tick"
+import (
+	"context"
+	"telegramAlerts/pkg/tick"
+)
 
-func GetEchoBot(token string) tgManager {
-	return tgManager{initEchoBot(token)}
-}
-
-type tgManager struct {
-	Bot TgRealization
+func GetEchoBot(ctx context.Context, token string) tgManager {
+	ctx, cancel := context.WithCancel(ctx)
+	return tgManager{
+		ctx,
+		initEchoBot(token),
+		cancel,
+	}
 }
 
 type TgRealization interface {
@@ -15,10 +19,16 @@ type TgRealization interface {
 	SendPhoto(chatId int64, file []byte) error
 }
 
-type TgWriterDelayed interface {
-	SendDelayedMsg(time int64, tag string, action func() error) error
+type tgManager struct {
+	ctx    context.Context
+	Bot    TgRealization
+	cancel context.CancelFunc
 }
 
-func (t tgManager) SendDelayedMsg(time int64, tag string, action func() error) error {
-	return tick.GenerateTicker(time, tag, action)
+func (t tgManager) SendDelayedMsg(time int64, tag string, action func() error) {
+	tick.GenerateTicker(t.ctx, time, tag, action)
+}
+
+func (t tgManager) CancelAllRealizationBroadcastingMsg() { //cancel all async alerts of exactly one realisation
+	t.cancel()
 }
