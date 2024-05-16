@@ -1,7 +1,6 @@
 package realisations
 
 import (
-	"context"
 	"fmt"
 	"github.com/NicoNex/echotron/v3"
 	"sync"
@@ -13,18 +12,12 @@ var (
 )
 
 type echoRealisations struct {
-	ctx context.Context
 	echotron.API
-	cancel context.CancelFunc
 }
 
 func initEchoBot(token string) echoRealisations {
 	initializer.Do(func() {
-		ctx, cancel := context.WithCancel(context.TODO())
-		echoBot = echoRealisations{
-			ctx,
-			echotron.NewAPI(token),
-			cancel}
+		echoBot = echoRealisations{echotron.NewAPI(token)}
 	})
 	return echoBot
 }

@@ -1,30 +1,31 @@
 package tick
 
 import (
-	"log/slog"
+	"context"
+	"fmt"
 	"time"
 )
 
-func GenerateTicker(amount int64, timeTag string, action func() error) error {
+func GenerateTicker(ctx context.Context, amount int64, timeTag string, action func() error) {
 	duration, err := convertDuration(time.Duration(amount), timeTag)
 	if err != nil {
-		return err
+		return
 	}
-
-	ticker := time.NewTicker(duration)
+	ticker := time.NewTicker(time.Duration(amount) * duration)
 	go func() {
+		var err error
 		for {
 			select {
+			case <-ctx.Done():
+				return
+
 			case <-ticker.C:
 				if err = action(); err != nil {
-					slog.Error(errMalformedAction.Error())
 					return
 				}
 			}
 		}
 	}()
-	ticker.Stop()
-	return nil
 }
 
 func convertDuration(amount time.Duration, timeTag string) (duration time.Duration, err error) {
@@ -38,7 +39,7 @@ func convertDuration(amount time.Duration, timeTag string) (duration time.Durati
 	case "h":
 		duration = amount * time.Hour
 	default:
-		err = errInvalidTag
+		err = fmt.Errorf("invalid tag")
 	}
 	return
 }
