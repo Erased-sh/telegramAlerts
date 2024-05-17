@@ -20,3 +20,30 @@ Ticker:
 
 Context:
 Может быть отменен глобально для всех реализаций, либо для всех тикеров одного объекта
+
+Sync msg
+```golang 
+ctx, cancel := context.WithCancel(context.Background())
+	bot := realisations.GetEchoBot(ctx, "TOKEN")
+    bot.Bot.SendMsg(chatid, "Simple sync msg")
+```
+
+Async msg
+```golang 
+ctx, cancel := context.WithCancel(context.Background())
+	bot := realisations.GetEchoBot(ctx, "TOKEN")
+
+	tries := 0
+	action := func() error {
+		tries++
+		return bot.Bot.SendMsg(7138652177, fmt.Sprintf("Async message. Try №%d", tries))
+	}
+	
+	go bot.SendDelayedMsg(1, "s", action)
+
+	time.Sleep(10 * time.Second)
+	cancel()
+	//unreachable child thread code
+	time.Sleep(10 * time.Second)
+```
+
